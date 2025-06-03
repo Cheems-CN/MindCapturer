@@ -21,7 +21,7 @@ public class UserController {
 
     @PostMapping("/register")
     public Result<String> register(){
-
+        return Result.success();
     }
 
     @PostMapping("/login")
@@ -40,7 +40,5 @@ public class UserController {
         return Result.success(jwt);
 
     }
-
-    @
 
 }

@@ -26,21 +26,42 @@
 <script>
 import NavBar from "../components/Navbar.vue";
 import { reactive } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
 
 export default {
   name: "Login",
   components: { NavBar },
   setup() {
+    const router = useRouter();
     const form = reactive({
       username: "",
       password: "",
     });
 
-    function handleLogin() {
-      // TODO：在这里对接后端登陆请求，例如：
-      // axios.post('/api/login', form).then(...)
-      console.log("登录信息：", form);
-      alert(`尝试登录：${form.username}`);
+    async function handleLogin() {
+      try {
+        const response = await axios.post('/api/user/login', null, {
+          params: {
+            username: form.username,
+            password: form.password
+          }
+        });
+        
+        if (response.data.code === 0) {
+          // 登录成功，保存token
+          localStorage.setItem('token', response.data.data);
+          // 设置axios默认请求头
+          axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.data}`;
+          // 跳转到首页
+          router.push('/');
+        } else {
+          alert(response.data.message || '登录失败');
+        }
+      } catch (error) {
+        console.error('登录错误:', error);
+        alert('登录失败，请稍后重试');
+      }
     }
 
     return { form, handleLogin };

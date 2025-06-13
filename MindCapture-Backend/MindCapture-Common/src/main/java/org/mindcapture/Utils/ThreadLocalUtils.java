@@ -1,4 +1,4 @@
-package com.bigevent.Utils;
+package org.mindcapture.Utils;
 
 public class ThreadLocalUtils {
     private static final ThreadLocal t1 = new ThreadLocal();

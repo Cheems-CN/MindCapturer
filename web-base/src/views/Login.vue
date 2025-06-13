@@ -12,7 +12,25 @@
         <label for="password">密码</label>
         <input type="password" id="password" v-model="form.password" required />
 
+        <div class="captcha-container">
+          <label for="captcha">验证码</label>
+          <div class="captcha-input-container">
+            <input type="text" id="captcha" v-model="form.captcha" required />
+            <img 
+              :src="captchaUrl" 
+              alt="验证码" 
+              class="captcha-img" 
+              @click="refreshCaptcha"
+              title="点击刷新验证码"
+            />
+          </div>
+        </div>
+
         <button type="submit">登录</button>
+        <div class="register-link">
+          <span>没有账号？</span>
+          <router-link to="/register">立即注册</router-link>
+        </div>
       </form>
     </div>
 
@@ -25,46 +43,87 @@
 
 <script>
 import NavBar from "../components/Navbar.vue";
-import { reactive } from "vue";
-import axios from "axios";
+import { reactive, ref, onMounted, getCurrentInstance } from "vue";
 import { useRouter } from "vue-router";
 
 export default {
   name: "Login",
   components: { NavBar },
   setup() {
+    const { proxy } = getCurrentInstance();
     const router = useRouter();
     const form = reactive({
       username: "",
       password: "",
+      captcha: ""
     });
+    
+    // 验证码相关
+    const captchaId = ref('');
+    const captchaUrl = ref('');
+    
+    // 刷新验证码
+    function refreshCaptcha() {
+      proxy.$request.get('/api/captcha/generate')
+        .then(res => {
+          captchaId.value = res.data.captchaId;
+          captchaUrl.value = `/api/captcha/image?id=${captchaId.value}&t=${new Date().getTime()}`;
+        })
+        .catch(error => {
+          console.error('获取验证码错误:', error);
+          alert('获取验证码失败，请刷新页面重试');
+        });
+    }
 
     async function handleLogin() {
       try {
-        const response = await axios.post('/api/user/login', null, {
+        if (!form.username || !form.password || !form.captcha) {
+          alert('请填写完整的登录信息');
+          return;
+        }
+        
+        const res = await proxy.$request.post('/api/auth/login', {
+          username: form.username,
+          password: form.password,
+          captcha: form.captcha
+        }, {
           params: {
-            username: form.username,
-            password: form.password
+            captchaId: captchaId.value
           }
         });
         
-        if (response.data.code === 0) {
-          // 登录成功，保存token
-          localStorage.setItem('token', response.data.data);
-          // 设置axios默认请求头
-          axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.data}`;
-          // 跳转到首页
-          router.push('/');
-        } else {
-          alert(response.data.message || '登录失败');
-        }
+        // 登录成功，保存token和用户信息
+        const userData = res.data;
+        localStorage.setItem('token', userData.token);
+        localStorage.setItem('userInfo', JSON.stringify(userData));
+        
+        // 设置axios默认请求头
+        proxy.$axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
+        
+        // 跳转到首页
+        router.push('/');
       } catch (error) {
         console.error('登录错误:', error);
-        alert('登录失败，请稍后重试');
+        if (error.message) {
+          alert(error.message);
+        } else {
+          alert('登录失败，请稍后重试');
+        }
+        refreshCaptcha(); // 刷新验证码
       }
     }
+    
+    // 组件挂载时获取验证码
+    onMounted(() => {
+      refreshCaptcha();
+    });
 
-    return { form, handleLogin };
+    return { 
+      form, 
+      handleLogin, 
+      captchaUrl, 
+      refreshCaptcha 
+    };
   },
 };
 </script>
@@ -98,9 +157,37 @@ export default {
 .login-container label {
   font-size: 14px;
   font-weight: 600;
-  margin: 10px 0 4px;
   display: block;
-  color: #444;
+  margin-bottom: 6px;
+}
+
+.captcha-container {
+  margin-bottom: 20px;
+}
+
+.captcha-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.captcha-img {
+  height: 38px;
+  border: 1px solid #d9e4ec;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.register-link a {
+  color: #0066cc;
+  text-decoration: none;
+  margin-left: 5px;
 }
 
 .login-container input[type="text"],

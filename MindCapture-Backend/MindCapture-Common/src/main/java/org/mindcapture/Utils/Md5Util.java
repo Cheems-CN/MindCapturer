@@ -1,4 +1,4 @@
-package com.bigevent.Utils;
+package org.mindcapture.Utils;
 
 
 import java.security.MessageDigest;

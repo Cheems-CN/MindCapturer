@@ -9,6 +9,9 @@
         <label for="username">用户名</label>
         <input type="text" id="username" v-model="form.username" required />
 
+        <label for="nickname">昵称</label>
+        <input type="text" id="nickname" v-model="form.nickname" required />
+
         <label for="email">邮箱</label>
         <input type="email" id="email" v-model="form.email" required />
 
@@ -30,15 +33,39 @@
             required
         />
 
-        <label for="confirm">确认密码</label>
+        <label for="confirmPassword">确认密码</label>
         <input
             type="password"
-            id="confirm"
-            v-model="form.confirm"
+            id="confirmPassword"
+            v-model="form.confirmPassword"
             required
         />
 
-        <button type="submit">注册</button>
+        <div class="captcha-container">
+          <label for="captcha">验证码</label>
+          <div class="captcha-input-container">
+            <input type="text" id="captcha" v-model="form.captcha" required />
+            <img 
+              :src="captchaUrl" 
+              alt="验证码" 
+              class="captcha-img" 
+              @click="refreshCaptcha"
+              title="点击刷新验证码"
+            />
+          </div>
+        </div>
+
+        <div v-if="!passwordsMatch" class="error-message">
+          两次输入的密码不一致
+        </div>
+
+        <button type="submit" :disabled="!passwordsMatch">
+          注册
+        </button>
+        <div class="login-link">
+          <span>已有账号？</span>
+          <router-link to="/login">立即登录</router-link>
+        </div>
       </form>
     </div>
 
@@ -51,31 +78,99 @@
 
 <script>
 import NavBar from "../components/Navbar.vue";
-import { reactive } from "vue";
+import { reactive, computed, ref, onMounted, getCurrentInstance } from "vue";
+import { useRouter } from "vue-router";
 
 export default {
   name: "Register",
   components: { NavBar },
   setup() {
+    const { proxy } = getCurrentInstance();
+    const router = useRouter();
     const form = reactive({
       username: "",
+      nickname: "",
       email: "",
       phone: "",
       password: "",
-      confirm: "",
+      confirmPassword: "",
+      captcha: ""
     });
 
-    function handleRegister() {
-      if (form.password !== form.confirm) {
-        alert("两次输入的密码不一致！");
-        return;
-      }
-      // TODO: 对接后端注册接口
-      console.log("注册信息：", form);
-      alert(`尝试注册：${form.username}`);
+    // 验证码相关
+    const captchaId = ref('');
+    const captchaUrl = ref('');
+    
+    // 刷新验证码
+    function refreshCaptcha() {
+      proxy.$request.get('/api/captcha/generate')
+        .then(res => {
+          captchaId.value = res.data.captchaId;
+          captchaUrl.value = `/api/captcha/image?id=${captchaId.value}&t=${new Date().getTime()}`;
+        })
+        .catch(error => {
+          console.error('获取验证码错误:', error);
+          alert('获取验证码失败，请刷新页面重试');
+        });
     }
 
-    return { form, handleRegister };
+    const passwordsMatch = computed(() => {
+      return form.password === form.confirmPassword;
+    });
+
+    async function handleRegister() {
+      if (!passwordsMatch.value) {
+        alert("两次输入的密码不一致");
+        return;
+      }
+
+      // 表单验证
+      if (!form.username || !form.nickname || !form.email || !form.phone || 
+          !form.password || !form.confirmPassword || !form.captcha) {
+        alert("请填写完整的注册信息");
+        return;
+      }
+
+      try {
+        await proxy.$request.post('/api/auth/register', {
+          username: form.username,
+          nickname: form.nickname,
+          email: form.email,
+          phone: form.phone,
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+          captcha: form.captcha
+        }, {
+          params: {
+            captchaId: captchaId.value
+          }
+        });
+
+        alert("注册成功，请登录");
+        router.push('/login');
+      } catch (error) {
+        console.error("注册错误:", error);
+        if (error.message) {
+          alert(error.message);
+        } else {
+          alert("注册失败，请稍后重试");
+        }
+        refreshCaptcha(); // 刷新验证码
+      }
+    }
+
+    // 组件挂载时获取验证码
+    onMounted(() => {
+      refreshCaptcha();
+    });
+
+    return { 
+      form, 
+      passwordsMatch, 
+      handleRegister, 
+      captchaUrl, 
+      refreshCaptcha 
+    };
   },
 };
 </script>

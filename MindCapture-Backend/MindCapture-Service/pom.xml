@@ -18,6 +18,18 @@
     </properties>
 
     <dependencies>
-
+        <!-- 依赖Common模块 -->
+        <dependency>
+            <groupId>org.mindcapture</groupId>
+            <artifactId>MindCapture-Common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        
+        <!-- 依赖Pojo模块 -->
+        <dependency>
+            <groupId>org.mindcapture</groupId>
+            <artifactId>MindCapture-Pojo</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

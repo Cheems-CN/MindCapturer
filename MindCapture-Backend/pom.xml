@@ -87,10 +87,10 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
 
-    <!-- Redis依赖 -->
+    <!-- MongoDB依赖 -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-redis</artifactId>
+      <artifactId>spring-boot-starter-data-mongodb</artifactId>
     </dependency>
 
     <!-- 参数校验 -->

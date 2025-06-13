@@ -2,6 +2,7 @@ package org.mindcapture.Service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.mindcapture.DTO.LoginDTO;
 import org.mindcapture.DTO.RegisterDTO;
 import org.mindcapture.DTO.Result;
@@ -27,19 +28,13 @@ import java.util.Objects;
  * 用户服务实现类
  */
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private CaptchaUtil captchaUtil;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final CaptchaUtil captchaUtil;
 
     @Override
     public Result<UserVO> login(LoginDTO loginDTO, String captchaId) {

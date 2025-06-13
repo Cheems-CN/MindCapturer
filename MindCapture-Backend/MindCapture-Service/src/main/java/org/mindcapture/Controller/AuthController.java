@@ -1,6 +1,7 @@
 package org.mindcapture.Controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.mindcapture.DTO.LoginDTO;
 import org.mindcapture.DTO.RegisterDTO;
 import org.mindcapture.DTO.Result;
@@ -14,10 +15,10 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     /**
      * 用户登录

@@ -11,14 +11,15 @@ spring:
     username: root
     password: 123456
   
-  # Redis配置
+  # MongoDB配置
   data:
-    redis:
+    mongodb:
       host: localhost
-      port: 6379
+      port: 27017
+      database: mind_capture
+      username: 
       password: 
-      database: 0
-      timeout: 10s
+      authentication-database: admin
 
 # MyBatis Plus配置
 mybatis-plus:
@@ -47,6 +48,7 @@ kaptcha:
   textproducer.font.size: 30
   textproducer.font.names: 宋体,楷体,微软雅黑
   textproducer.char.length: 4
+  expiration: 300  # 验证码过期时间（秒）
   image.width: 120
   image.height: 40
   session.key: kaptcha_code

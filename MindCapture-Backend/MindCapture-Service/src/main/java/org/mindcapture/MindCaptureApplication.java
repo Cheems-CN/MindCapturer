@@ -1,14 +1,13 @@
 package org.mindcapture;
 
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-public class MindCaptureApplication
-{
-    public static void main( String[] args )
-    {
+@EnableScheduling
+public class MindCaptureApplication {
+    public static void main(String[] args) {
         SpringApplication.run(MindCaptureApplication.class, args);
     }
 }
